@@ -1,5 +1,6 @@
-import { UserState, UserActionTypes, User, UserJson} from "./types";
+import { AppState, UserActionTypes, User, UserJson, SortStrategy, SelectionStrategy} from "./types";
 import leaderBoard from "./leaderboard.json"
+import { compareAlphabetically } from "./util";
 
 
 interface LeaderBoardData {
@@ -12,18 +13,43 @@ const loadUsers = () : User[] => {
     let usersJsonObjs : UserJson[] = userIds.map(userId => leaderBoardData[userId]);
 
     usersJsonObjs.forEach(user => user.name = user.name.trim())
-    usersJsonObjs.filter(userJson => userJson.name.length > 0)
-    usersJsonObjs.sort((a, b) => (a.bananas - b.bananas) * -1);
+    usersJsonObjs.sort(byComparingBananasAndName)
 
     return usersJsonObjs.map((userJson, index) => ({name: userJson.name, bananas: userJson.bananas, rank: index + 1}))
 }
 
-const initialState: UserState = {
+const byComparingBananasAndName = (a: UserJson, b: UserJson) => {
+  const A_GREATER_B = 1;
+  const B_GREATER_A = -1;
+
+  if(a.bananas < b.bananas){
+    return A_GREATER_B;
+  }
+  if(b.bananas < a.bananas){
+    return B_GREATER_A;
+  }
+
+  return compareAlphabetically(a.name, b.name);
+}
+
+const initialState: AppState = {
   users: loadUsers(),
+  sorting: SortStrategy.BY_RANK,
+  selection: SelectionStrategy.TOP_TEN
 };
 
-export function userReducer(state = initialState, action: UserActionTypes): UserState {
+export function userReducer(state = initialState, action: UserActionTypes): AppState {
   switch (action.type) {
+    case "SET_SORTING":
+      return {
+        ...state,
+        sorting: action.payload
+      }
+    case "SET_SELECTION":
+      return {
+        ...state,
+        selection: action.payload
+      }
     default:
       return state;
   }

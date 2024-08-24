@@ -15,13 +15,23 @@ export interface UserJson {
     rank: number;
   }
   
-  export interface UserState {
+  export interface AppState {
     users: User[];
+    sorting: SortStrategy
+    selection: SelectionStrategy
   }
-  
-  interface DummyActionType {
-    type: string;
-    payload: string;
+
+  export const SET_SORTING = "SET_SORTING";
+  export const SET_SELECTION = "SET_SELECTION";
+
+  interface SortingAction {
+    type: typeof SET_SORTING;
+    payload: SortStrategy;
+  }
+
+  interface SelectionAction {
+    type: typeof SET_SELECTION;
+    payload: SelectionStrategy;
   }
 
   export enum SortStrategy {
@@ -29,8 +39,14 @@ export interface UserJson {
     BY_NAME
   }
 
+  export enum SelectionStrategy {
+    TOP_TEN,
+    BOTTOM_TEN,
+    FUZZY
+  }
+
   export type LeaderBoardEntry = { user: User; selected: boolean };
 
   
-  export type UserActionTypes = DummyActionType;
+  export type UserActionTypes = SortingAction | SelectionAction;
   
