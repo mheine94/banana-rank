@@ -1,18 +1,21 @@
-import { UserState, UserActionTypes, User} from "./types";
+import { UserState, UserActionTypes, User, UserJson} from "./types";
 import leaderBoard from "./leaderboard.json"
 
 
 interface LeaderBoardData {
-    [key: string]: User;
+    [key: string]: UserJson;
   }
 
 const loadUsers = () : User[] => {
     const leaderBoardData : LeaderBoardData  = leaderBoard;
     const userIds = Object.keys(leaderBoard);
-    const users : User[] = []
-    userIds.forEach(userId => users.push(leaderBoardData[userId]))
-    users.sort((a, b) => (a.bananas - b.bananas) * -1);
-    return users;
+    let usersJsonObjs : UserJson[] = userIds.map(userId => leaderBoardData[userId]);
+
+    usersJsonObjs.forEach(user => user.name = user.name.trim())
+    usersJsonObjs.filter(userJson => userJson.name.length > 0)
+    usersJsonObjs.sort((a, b) => (a.bananas - b.bananas) * -1);
+
+    return usersJsonObjs.map((userJson, index) => ({name: userJson.name, bananas: userJson.bananas, rank: index + 1}))
 }
 
 const initialState: UserState = {

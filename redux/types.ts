@@ -1,4 +1,4 @@
-export interface User {
+export interface UserJson {
     bananas: number
     lastDayPlayed: string;
     longestStreak: number;
@@ -6,6 +6,13 @@ export interface User {
     stars: number
     subscribed: boolean;
     uid: string;
+    rank?: number;
+  }
+
+  export interface User {
+    bananas: number
+    name: string;
+    rank: number;
   }
   
   export interface UserState {
@@ -17,7 +24,12 @@ export interface User {
     payload: string;
   }
 
-  export type LeaderBoardEntry = { user: User; rank: number; selected: boolean };
+  export enum SortStrategy {
+    BY_RANK,
+    BY_NAME
+  }
+
+  export type LeaderBoardEntry = { user: User; selected: boolean };
 
   
   export type UserActionTypes = DummyActionType;
