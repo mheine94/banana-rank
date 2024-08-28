@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FlatList, View } from "react-native";
+import { useEffect, useState } from "react";
+import { FlatList, View, Image, Animated, Dimensions, Keyboard } from "react-native";
 import { Button, Card, List, Searchbar, Text } from "react-native-paper";
 import { Alert } from "react-native";
 import {
@@ -12,6 +12,11 @@ import { LeaderBoardEntry, AppState, SelectionStrategy } from "@/redux/types";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setSelection, setSorting } from "../redux/actions";
 import { SortStrategy } from "../redux/types";
+const { width, height } = Dimensions.get("window");
+
+const IMAGE_HEIGHT = height * 0.3;
+const IMAGE_HEIGHT_SMALL = height * 0.2;
+
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +34,59 @@ export default function Index() {
   const selectionStrategy = useAppSelector((state: AppState) =>
     selectSelectionStrategy(state),
   );
+
+
+  const keyboardHeight = new Animated.Value(0);
+  const imageHeight = new Animated.Value(IMAGE_HEIGHT);
+
+  useEffect(() => {
+    const keyboardWillShowSub = Keyboard.addListener("keyboardDidShow", handleKeyboardWillShow);
+    const keyboardWillHideSub = Keyboard.addListener("keyboardDidHide", handleKeyboardWillHide);
+
+    return () => {
+      keyboardWillShowSub.remove();
+      keyboardWillHideSub.remove();
+    };
+  }, []);
+
+
+  const handleKeyboardWillShow = (event) => {
+    Animated.parallel([
+      Animated.timing(keyboardHeight, {
+        // @ts-ignore
+        duration: 300,
+         // @ts-ignore
+        toValue: event.endCoordinates.height,   
+  
+        useNativeDriver: false,   
+   // Set useNativeDriver to false or true based on your preference
+      }),
+      Animated.timing(imageHeight, {
+         // @ts-ignore
+        duration: 300,
+         // @ts-ignorer
+        toValue: IMAGE_HEIGHT_SMALL,
+        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+      }),
+    ]).start();
+  };
+  
+  const handleKeyboardWillHide = (event) => {
+    Animated.parallel([
+      Animated.timing(keyboardHeight, {
+         // @ts-ignore
+        duration: 300,
+        toValue: 0,
+        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+      }),
+      Animated.timing(imageHeight, {
+         // @ts-ignore
+        duration: 300,
+        toValue: IMAGE_HEIGHT,
+        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+      }),
+    ]).start();
+  };
 
   const searchUser = (search: string) => {
     let newStrategy = selectionStrategy;
@@ -63,23 +121,23 @@ export default function Index() {
   }
 
   const renderIt = (entry: LeaderBoardEntry) => (
-    <Card style={{ marginVertical: 5, marginHorizontal: 10 }}>
+    <Card
+      style={{
+        marginVertical: 5,
+        marginHorizontal: 10,
+        backgroundColor: entry.selected ? '#d0e3ff' : '#fff', // Slightly more saturated blue for selected
+      }}
+    >
       <Card.Content>
         <List.Item
           title={entry.user.name}
           description={`Rank: ${entry.user.rank}, Bananas: ${entry.user.bananas}`}
-          right={(props) =>
-            entry.selected && (
-              <Text style={{ fontWeight: "bold", color: "green" }}>
-                Selected
-              </Text>
-            )
-          }
+          titleStyle={{ fontWeight: 'bold', color: '#000' }} // Darker title color for better contrast
+          descriptionStyle={{ color: '#666' }} // Slightly darker description for contrast
         />
       </Card.Content>
     </Card>
   );
-
   const getRankButton = () =>
     selectionStrategy === SelectionStrategy.TOP_TEN ? (
       <Button
@@ -109,7 +167,14 @@ export default function Index() {
     );
 
   return (
-    <View style={{ flex: 1, padding: 10 }}>
+  <Animated.View
+    style={{
+      paddingBottom: keyboardHeight
+    }}
+  >
+  <Animated.Image source={require("../assets/images/test.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1"}} />
+ 
+
       <View
         style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
       >
@@ -141,6 +206,6 @@ export default function Index() {
         keyExtractor={(item) => item.user.name}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-    </View>
+    </Animated.View>
   );
 }
