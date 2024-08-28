@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { FlatList, Text, View } from "react-native";
-import { Button, SearchBar } from "@rneui/themed";
+import { FlatList, View } from "react-native";
+import { Button, Card, List, Searchbar, Text } from "react-native-paper";
 import { Alert } from "react-native";
 import {
   FUZZY_TOKEN,
@@ -21,7 +21,7 @@ export default function Index() {
   const dispatch = useAppDispatch();
 
   const leaderBoardUsers = useAppSelector((state: AppState) =>
-    memoizedLeaderBoardUsers(state)(searched)
+    memoizedLeaderBoardUsers(state)(searched),
   );
   const sortStrategy = useAppSelector((state: AppState) =>
     selectSortingStrategy(state),
@@ -30,7 +30,7 @@ export default function Index() {
     selectSelectionStrategy(state),
   );
 
-  let searchUser = (search: any) => {
+  const searchUser = (search: string) => {
     let newStrategy = selectionStrategy;
     if (search !== undefined && search.startsWith(FUZZY_TOKEN)) {
       newStrategy = SelectionStrategy.FUZZY;
@@ -39,22 +39,19 @@ export default function Index() {
     }
 
     if (newStrategy !== selectionStrategy) {
-      let setSelectionAction = setSelection(newStrategy);
-      dispatch(setSelectionAction);
+      dispatch(setSelection(newStrategy));
     }
 
     setSearched(search);
     setSilenceAlert(false);
   };
 
-  let sort = (strategy: SortStrategy) => {
-    let sortingAction = setSorting(strategy);
-    dispatch(sortingAction);
+  const sort = (strategy: SortStrategy) => {
+    dispatch(setSorting(strategy));
   };
 
-  let select = (strategy: SelectionStrategy) => {
-    let selectionStrategy = setSelection(strategy);
-    dispatch(selectionStrategy);
+  const select = (strategy: SelectionStrategy) => {
+    dispatch(setSelection(strategy));
   };
 
   if (!silenceAlert && leaderBoardUsers.length === 0 && searched !== null) {
@@ -62,95 +59,88 @@ export default function Index() {
       "No results",
       "This user name does not exist! Please specify an existing user name!",
     );
-    // we don't want to alert on every rerender
-    // only alert again when the user searched something new
     setSilenceAlert(true);
   }
 
-  let renderIt = (entry: LeaderBoardEntry) => {
-    return (
-      <View>
-        <Text>
-          Name: "{entry.user.name}" Rank: {entry.user.rank} Bananas:{" "}
-          {entry.user.bananas} {entry.selected ? "<---" : ""}
-        </Text>
-      </View>
-    );
-  };
+  const renderIt = (entry: LeaderBoardEntry) => (
+    <Card style={{ marginVertical: 5, marginHorizontal: 10 }}>
+      <Card.Content>
+        <List.Item
+          title={entry.user.name}
+          description={`Rank: ${entry.user.rank}, Bananas: ${entry.user.bananas}`}
+          right={(props) =>
+            entry.selected && (
+              <Text style={{ fontWeight: "bold", color: "green" }}>
+                Selected
+              </Text>
+            )
+          }
+        />
+      </Card.Content>
+    </Card>
+  );
 
-  let getRankButton = () => {
-    return selectionStrategy === SelectionStrategy.TOP_TEN ? (
+  const getRankButton = () =>
+    selectionStrategy === SelectionStrategy.TOP_TEN ? (
       <Button
-        title="Show Bottom Ten"
+        mode="contained"
         onPress={() => select(SelectionStrategy.BOTTOM_TEN)}
-      ></Button>
+      >
+        Show Bottom Ten
+      </Button>
     ) : (
       <Button
-        title="Show Top Ten"
+        mode="contained"
         onPress={() => select(SelectionStrategy.TOP_TEN)}
-      ></Button>
+      >
+        Show Top Ten
+      </Button>
     );
-  };
 
-  let getSortButton = () => {
-    return sortStrategy === SortStrategy.BY_RANK ? (
-      <Button
-        title="Sort by name"
-        onPress={() => sort(SortStrategy.BY_NAME)}
-      ></Button>
+  const getSortButton = () =>
+    sortStrategy === SortStrategy.BY_RANK ? (
+      <Button mode="contained" onPress={() => sort(SortStrategy.BY_NAME)}>
+        Sort by Name
+      </Button>
     ) : (
-      <Button
-        title="Sort by rank"
-        onPress={() => sort(SortStrategy.BY_RANK)}
-      ></Button>
+      <Button mode="contained" onPress={() => sort(SortStrategy.BY_RANK)}>
+        Sort by Rank
+      </Button>
     );
-  };
 
   return (
-    <View>
+    <View style={{ flex: 1, padding: 10 }}>
       <View
-       style={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 10
-      }}>
-      <SearchBar
-        containerStyle={{minWidth: "45%"}}
-        placeholder="Search user"
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-      />
-      <Button
-        title="Search"
-        onPress={() => searchUser(searchQuery.trim())}
-      ></Button>
+        style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
+      >
+        <Searchbar
+          style={{ flex: 1, marginRight: 10 }}
+          placeholder="Search user"
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+        />
+        <Button mode="contained" onPress={() => searchUser(searchQuery.trim())}>
+          Search
+        </Button>
       </View>
-     
-      <View   style={{
-        display: "flex",
-        flexDirection: "row",
-        marginBottom: 10
-      }}>
-      {getSortButton()}
 
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
+      >
+        {getSortButton()}
         {selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
-        </View>
-     
-        <View   style={{
-          justifyContent: "center",
-          alignItems: "center"
-      }}>
-      {leaderBoardUsers.length > 0 && (
-        <FlatList
-          data={leaderBoardUsers}
-          renderItem={({ item, index }) => renderIt(item)}
-        ></FlatList>
-      )}
-        </View>
-     
-     
+      </View>
+
+      <FlatList
+        data={leaderBoardUsers}
+        renderItem={({ item }) => renderIt(item)}
+        keyExtractor={(item) => item.user.name}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </View>
   );
 }

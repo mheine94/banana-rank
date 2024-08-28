@@ -8,7 +8,7 @@ import {
   UserMap,
 } from "./types";
 import { compareAlphabetically, compareByUserName } from "./util";
-import { createSelector } from 'reselect'
+import { createSelector } from "reselect";
 
 // return the same instance of empty list in case that there are no results
 // that prevents unnecessary rerendering
@@ -16,11 +16,9 @@ const EMPTY_LIST: LeaderBoardEntry[] = [];
 
 export const FUZZY_TOKEN: string = "~";
 
-
 const getTop10 = (state: AppState) => state.top10;
 const getBottom10 = (state: AppState) => state.bottom10;
 const getUsers = (state: AppState) => state.users;
-
 
 export const selectSortingStrategy = (state: AppState) => {
   return state.sorting;
@@ -30,25 +28,44 @@ export const selectSelectionStrategy = (state: AppState) => {
   return state.selection;
 };
 
-
 export const memoizedLeaderBoardUsers = createSelector(
-  [selectSelectionStrategy, selectSortingStrategy, getTop10, getBottom10, getUsers],
-  (selection, sorting, top10, bottom10, users) => (searchQuery: string | null) => {
-    let leaderBoard: LeaderBoardEntry[] | null = null;
+  [
+    selectSelectionStrategy,
+    selectSortingStrategy,
+    getTop10,
+    getBottom10,
+    getUsers,
+  ],
+  (selection, sorting, top10, bottom10, users) =>
+    (searchQuery: string | null) => {
+      let leaderBoard: LeaderBoardEntry[] | null = null;
 
-    if (searchQuery === null) {
-      leaderBoard = EMPTY_LIST;
-    } else if (selection === SelectionStrategy.FUZZY && searchQuery.startsWith(FUZZY_TOKEN)) {
-      let searchWithoutToken = searchQuery.slice(1);
-      leaderBoard = selectLeaderBoardUsersFuzzy(users, searchWithoutToken, top10);
-    } else {
-      leaderBoard = selectLeaderBoardUsersTopOrBottom(selection, searchQuery, users, top10, bottom10);
-    }
+      if (searchQuery === null) {
+        leaderBoard = EMPTY_LIST;
+      } else if (
+        selection === SelectionStrategy.FUZZY &&
+        searchQuery.startsWith(FUZZY_TOKEN)
+      ) {
+        let searchWithoutToken = searchQuery.slice(1);
+        leaderBoard = selectLeaderBoardUsersFuzzy(
+          users,
+          searchWithoutToken,
+          top10,
+        );
+      } else {
+        leaderBoard = selectLeaderBoardUsersTopOrBottom(
+          selection,
+          searchQuery,
+          users,
+          top10,
+          bottom10,
+        );
+      }
 
-    applySorting(leaderBoard, sorting);
+      applySorting(leaderBoard, sorting);
 
-    return leaderBoard;
-  }
+      return leaderBoard;
+    },
 );
 
 const selectLeaderBoardUsersFuzzy = (
