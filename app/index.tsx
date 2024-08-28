@@ -71,7 +71,7 @@ export default function Index() {
     return (
       <View>
         <Text>
-          Name: {entry.user.name} Rank: {entry.user.rank} Bananas:{" "}
+          Name: "{entry.user.name}" Rank: {entry.user.rank} Bananas:{" "}
           {entry.user.bananas} {entry.selected ? "<---" : ""}
         </Text>
       </View>
