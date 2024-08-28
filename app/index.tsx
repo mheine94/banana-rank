@@ -4,7 +4,7 @@ import { Button, SearchBar } from "@rneui/themed";
 import { Alert } from "react-native";
 import {
   FUZZY_TOKEN,
-  selectLeaderBoardUsers,
+  memoizedLeaderBoardUsers,
   selectSelectionStrategy,
   selectSortingStrategy,
 } from "@/redux/selectors";
@@ -15,12 +15,13 @@ import { SortStrategy } from "../redux/types";
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [searched, setSearched] = useState<string | undefined>();
+  const [searched, setSearched] = useState<string | null>(null);
+  const [silenceAlert, setSilenceAlert] = useState(false);
 
   const dispatch = useAppDispatch();
 
   const leaderBoardUsers = useAppSelector((state: AppState) =>
-    selectLeaderBoardUsers(state, searched),
+    memoizedLeaderBoardUsers(state)(searched)
   );
   const sortStrategy = useAppSelector((state: AppState) =>
     selectSortingStrategy(state),
@@ -43,6 +44,7 @@ export default function Index() {
     }
 
     setSearched(search);
+    setSilenceAlert(false);
   };
 
   let sort = (strategy: SortStrategy) => {
@@ -55,11 +57,14 @@ export default function Index() {
     dispatch(selectionStrategy);
   };
 
-  if (leaderBoardUsers.length === 0 && searched !== undefined) {
+  if (!silenceAlert && leaderBoardUsers.length === 0 && searched !== null) {
     Alert.alert(
       "No results",
       "This user name does not exist! Please specify an existing user name!",
     );
+    // we don't want to alert on every rerender
+    // only alert again when the user searched something new
+    setSilenceAlert(true);
   }
 
   let renderIt = (entry: LeaderBoardEntry) => {
@@ -102,15 +107,18 @@ export default function Index() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
+    <View>
+      <View
+       style={{
+        display: "flex",
+        flexDirection: "row",
         alignItems: "center",
-      }}
-    >
+        justifyContent: "center",
+        marginBottom: 10
+      }}>
       <SearchBar
-        placeholder="search user"
+        containerStyle={{minWidth: "45%"}}
+        placeholder="Search user"
         onChangeText={setSearchQuery}
         value={searchQuery}
       />
@@ -118,17 +126,31 @@ export default function Index() {
         title="Search"
         onPress={() => searchUser(searchQuery.trim())}
       ></Button>
-
+      </View>
+     
+      <View   style={{
+        display: "flex",
+        flexDirection: "row",
+        marginBottom: 10
+      }}>
       {getSortButton()}
 
-      {selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
-
+        {selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
+        </View>
+     
+        <View   style={{
+          justifyContent: "center",
+          alignItems: "center"
+      }}>
       {leaderBoardUsers.length > 0 && (
         <FlatList
           data={leaderBoardUsers}
           renderItem={({ item, index }) => renderIt(item)}
         ></FlatList>
       )}
+        </View>
+     
+     
     </View>
   );
 }

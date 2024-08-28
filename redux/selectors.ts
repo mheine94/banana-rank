@@ -4,86 +4,90 @@ import {
   SelectionStrategy,
   User,
   SortStrategy,
+  UserMap,
 } from "./types";
 import { compareAlphabetically, compareByUserName } from "./util";
+import { createSelector } from 'reselect'
 
 // return the same instance of empty list in case that there are no results
 // that prevents unnecessary rerendering
 const EMPTY_LIST: LeaderBoardEntry[] = [];
+
 export const FUZZY_TOKEN: string = "~";
 
-export const selectLeaderBoardUsers = (
-  state: AppState,
-  searchQuery: string | undefined,
-) => {
-  // if multiple users have the same name then only one of them will be found
-  // the requirement does say what should be done in case mutliple users have the same name
-  let leaderBoard = null;
 
-  // initial state of the ui nothing is typed we display top 10
-  // would be cooler than just empty page
-  // requirement sais to display after searching...
-  // maybe I should remove this to follow requirement strictly
-  if (searchQuery === undefined) {
-    leaderBoard = selectTopOrBottomTenWithNoSearch(state);
-  } else if (state.selection === SelectionStrategy.FUZZY) {
-    let searchWithoutToken = searchQuery!.slice(1);
-    leaderBoard = selectLeaderBoardUsersFuzzy(state, searchWithoutToken);
-  } else {
-    leaderBoard = selectLeaderBoardUsersTopOrBottom(state, searchQuery);
-  }
+const getTop10 = (state: AppState) => state.top10;
+const getBottom10 = (state: AppState) => state.bottom10;
+const getUsers = (state: AppState) => state.users;
 
-  applySorting(leaderBoard, state.sorting);
 
-  return leaderBoard;
+export const selectSortingStrategy = (state: AppState) => {
+  return state.sorting;
 };
 
+export const selectSelectionStrategy = (state: AppState) => {
+  return state.selection;
+};
+
+
+export const memoizedLeaderBoardUsers = createSelector(
+  [selectSelectionStrategy, selectSortingStrategy, getTop10, getBottom10, getUsers],
+  (selection, sorting, top10, bottom10, users) => (searchQuery: string | null) => {
+    let leaderBoard: LeaderBoardEntry[] | null = null;
+
+    if (searchQuery === null) {
+      leaderBoard = EMPTY_LIST;
+    } else if (selection === SelectionStrategy.FUZZY && searchQuery.startsWith(FUZZY_TOKEN)) {
+      let searchWithoutToken = searchQuery.slice(1);
+      leaderBoard = selectLeaderBoardUsersFuzzy(users, searchWithoutToken, top10);
+    } else {
+      leaderBoard = selectLeaderBoardUsersTopOrBottom(selection, searchQuery, users, top10, bottom10);
+    }
+
+    applySorting(leaderBoard, sorting);
+
+    return leaderBoard;
+  }
+);
+
 const selectLeaderBoardUsersFuzzy = (
-  state: AppState,
+  users: Record<string, User>,
   searchQuery: string,
+  top10: User[],
 ): LeaderBoardEntry[] => {
-  var sorting = state.sorting;
-
-  let leaderBoardUsers = [];
-
-  // if search query is empty then we will just show top 10
   if (searchQuery.length === 0) {
-    leaderBoardUsers = state.top10;
+    // If search query is empty, return the top 10 users
+    return top10.map((user) => ({ user, selected: true }));
   } else {
-    leaderBoardUsers = Object.keys(state.users)
+    const leaderBoardUsers = Object.keys(users)
       .filter((username) => username.includes(searchQuery))
-      .map((userName) => state.users[userName])
+      .map((userName) => users[userName])
       .slice(0, 10);
+
+    if (leaderBoardUsers.length === 0) {
+      return EMPTY_LIST;
+    }
+
+    return leaderBoardUsers.map((user) => ({ user, selected: true }));
   }
-
-  let leaderBoardEntries = leaderBoardUsers.map((user) => ({
-    user,
-    selected: true,
-  }));
-
-  if (leaderBoardEntries.length === 0) {
-    return EMPTY_LIST;
-  }
-
-  return leaderBoardEntries;
 };
 
 const selectLeaderBoardUsersTopOrBottom = (
-  state: AppState,
+  selection: SelectionStrategy,
   searchQuery: string | undefined,
-) => {
-  var selection = state.selection;
-  var sorting = state.sorting;
-
+  users: Record<string, User>,
+  top10: User[],
+  bottom10: User[],
+): LeaderBoardEntry[] => {
   let selectedUsers =
-    state.selection == SelectionStrategy.TOP_TEN ? state.top10 : state.bottom10;
+    selection === SelectionStrategy.TOP_TEN ? top10 : bottom10;
 
   let leaderBoardUsers = selectedUsers.map((user) => ({
     user,
     selected: user.name === searchQuery,
   }));
 
-  if (searchQuery === undefined) {
+  if (!searchQuery) {
     return leaderBoardUsers;
   }
 
@@ -92,9 +96,9 @@ const selectLeaderBoardUsersTopOrBottom = (
   );
 
   if (!searchedUserIsInTopTen) {
-    const searchedUser = state.users[searchQuery];
-    if (searchedUser !== undefined) {
-      var entry = { user: searchedUser, selected: true };
+    const searchedUser = users[searchQuery];
+    if (searchedUser) {
+      const entry = { user: searchedUser, selected: true };
       addSearchedUserToLeaderboard(entry, selection, leaderBoardUsers);
     } else {
       return EMPTY_LIST;
@@ -102,12 +106,6 @@ const selectLeaderBoardUsersTopOrBottom = (
   }
 
   return leaderBoardUsers;
-};
-
-const selectTopOrBottomTenWithNoSearch = (state: AppState) => {
-  let selectedUsers =
-    state.selection == SelectionStrategy.TOP_TEN ? state.top10 : state.bottom10;
-  return selectedUsers.map((user) => ({ user, selected: false }));
 };
 
 const applySorting = (
@@ -129,12 +127,4 @@ const addSearchedUserToLeaderboard = (
   } else {
     leaderBoard.splice(0, 1, user);
   }
-};
-
-export const selectSortingStrategy = (state: AppState) => {
-  return state.sorting;
-};
-
-export const selectSelectionStrategy = (state: AppState) => {
-  return state.selection;
 };
