@@ -1,25 +1,36 @@
 export interface UserJson {
-    bananas: number
+    bananas: number;
     lastDayPlayed: string;
     longestStreak: number;
     name: string;
-    stars: number
+    stars: number;
     subscribed: boolean;
     uid: string;
     rank?: number;
   }
 
   export interface User {
-    bananas: number
+    bananas: number;
     name: string;
     rank: number;
   }
+
+  export interface UserMap {
+    [key: string]: User;
+  }
   
   export interface AppState {
-    users: User[];
-    sorting: SortStrategy
-    selection: SelectionStrategy
+    users: UserMap;
+    top10: User[];
+    bottom10: User[];
+    sorting: SortStrategy;
+    selection: SelectionStrategy;
   }
+
+ export interface LeaderBoardData {
+    [key: string]: UserJson;
+}
+
 
   export const SET_SORTING = "SET_SORTING";
   export const SET_SELECTION = "SET_SELECTION";

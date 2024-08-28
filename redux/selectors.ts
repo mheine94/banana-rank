@@ -8,6 +8,9 @@ export const FUZZY_TOKEN : string = "~";
 
 
 export const selectLeaderBoardUsers = (state: AppState, searchQuery: string | undefined) => {
+  // if multiple users have the same name then only one of them will be found
+  // the requirement does say what should be done in case mutliple users have the same name
+
   if(state.selection === SelectionStrategy.FUZZY){
     let searchWithoutToken = searchQuery!.slice(1);
     return selectLeaderBoardUsersFuzzy(state, searchWithoutToken);
@@ -19,21 +22,19 @@ export const selectLeaderBoardUsers = (state: AppState, searchQuery: string | un
 const selectLeaderBoardUsersFuzzy = (state: AppState, searchQuery: string) : LeaderBoardEntry[] => {
   var sorting = state.sorting;
 
-
   let leaderBoardUsers = [];
 
+  // if search query is empty then we will just show top 10
   if(searchQuery.length === 0){
-    leaderBoardUsers = state.users.slice(0, 10);
+    leaderBoardUsers = state.top10;
   }else{
-    leaderBoardUsers = state.users
-    .filter(user => user.name.includes(searchQuery))
+    leaderBoardUsers = Object.keys(state.users)
+      .filter(username => username.includes(searchQuery))
+      .map(userName => state.users[userName])
+      .slice(0, 10)
   }
 
-  let leaderBoardEntries = leaderBoardUsers
-    .map((user, index) => {
-        let entry : LeaderBoardEntry = {user, selected: true}
-        return entry
-   }).slice(0, 10);
+  let leaderBoardEntries = leaderBoardUsers.map((user) => ({user, selected: true}));
 
   if(sorting === SortStrategy.BY_NAME){
     leaderBoardEntries.sort(byUserName)
@@ -50,18 +51,19 @@ const selectLeaderBoardUsersTopOrBottom = (state: AppState, searchQuery: string 
   var selection = state.selection;
   var sorting = state.sorting;
 
-  let selectedUsers = getTopOrBottom10(state.users, selection);
+  let selectedUsers = state.selection == SelectionStrategy.TOP_TEN ? state.top10 : state.bottom10;
 
-  let leaderBoardUsers = selectedUsers
-    .map((user, index) => {
-        let entry : LeaderBoardEntry = {user, selected: user.name ===searchQuery}
-        return entry
-    });
+  let leaderBoardUsers = selectedUsers.map((user) => ({user, selected: user.name ===searchQuery}));
 
-    const searchedUserIsInTopTen = leaderBoardUsers.some(entry  => entry.selected);
+  // initial state of the ui nothing is typed we display top 10
+  if(searchQuery === undefined){
+    return leaderBoardUsers;
+  }
+  
+  const searchedUserIsInTopTen = leaderBoardUsers.some(entry  => entry.selected);
 
-    if(!searchedUserIsInTopTen){
-      const searchedUser = state.users.find(user => user.name === searchQuery);
+  if(!searchedUserIsInTopTen){
+      const searchedUser = state.users[searchQuery]
       if(searchedUser !== undefined){
         var entry = {user: searchedUser, selected: true}
         addSearchedUserToLeaderboard(entry, selection, leaderBoardUsers)
@@ -88,15 +90,6 @@ const addSearchedUserToLeaderboard = (user: LeaderBoardEntry, selection: Selecti
     leaderBoard.splice(0, 1, user);
   }
 }
-
-const getTopOrBottom10 = (users: User[], selection: SelectionStrategy) : User[] => {
-  if(selection === SelectionStrategy.TOP_TEN){
-    return users.slice(0, 10);
-  }else{
-    return users.slice(users.length - 11, users.length)
-  }
-}
-
 
 export const selectSortingStrategy = (state: AppState) =>{
   return state.sorting;
