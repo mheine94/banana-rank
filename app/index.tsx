@@ -15,7 +15,7 @@ import { SortStrategy } from "../redux/types";
 const {  width, height } = Dimensions.get("window");
 
 const IMAGE_HEIGHT = height * 0.3;
-const IMAGE_HEIGHT_BIG = Math.min(height * 0.6, width * 0.9);
+const IMAGE_HEIGHT_BIG = Math.min(height * 0.5, width * 0.9);
 
 const IMAGE_HEIGHT_SMALL = height * 0.2;
 
@@ -23,6 +23,7 @@ const IMAGE_HEIGHT_SMALL = height * 0.2;
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searched, setSearched] = useState<string | null>(null);
+  const [barWasFocused, setBarwasFocused] = useState<boolean>(false);
   const [silenceAlert, setSilenceAlert] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -71,11 +72,24 @@ export default function Index() {
       Animated.timing(imageHeight, {
          // @ts-ignore
         duration: 300,
-        toValue: IMAGE_HEIGHT,
+        toValue:  IMAGE_HEIGHT,
         useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
       }),
     ]).start();
   };
+
+  const handleFocusBar = () =>{
+    if(!barWasFocused){
+      setBarwasFocused(true);
+    }
+  }
+
+  
+  const handleUnFocusBar = () =>{
+    if(barWasFocused){
+      setBarwasFocused(false);
+    }
+  }
 
   const searchUser = (search: string) => {
     let newStrategy = selectionStrategy;
@@ -157,7 +171,7 @@ export default function Index() {
 
   return (
   <Animated.View style={{flex: 1}}>
-  <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1"}} />
+  <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", padding: 10}} />
  
 
       <View
@@ -168,10 +182,15 @@ export default function Index() {
           placeholder="Search user"
           onChangeText={setSearchQuery}
           value={searchQuery}
+          onBlur={handleUnFocusBar}
+          onFocus={handleFocusBar}
         />
-        <Button mode="contained" onPress={() => searchUser(searchQuery.trim())}>
+        <View style={{display: barWasFocused? undefined: "none"}}>
+        <Button  mode="contained" onPress={() => searchUser(searchQuery.trim())}>
           Search
         </Button>
+        </View>
+       
       </View>
 
       <View
