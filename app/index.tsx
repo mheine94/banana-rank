@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Animated, Dimensions, Keyboard } from "react-native";
+import { View, Animated, Dimensions, Keyboard, Vibration } from "react-native";
 import { Button, DataTable, Searchbar } from "react-native-paper";
 import { Alert } from "react-native";
 import {
@@ -13,6 +13,8 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setSelection, setSorting } from "../redux/actions";
 import { SortStrategy } from "../redux/types";
 const {  width, height } = Dimensions.get("window");
+
+import * as Clipboard from 'expo-clipboard'
 
 const IMAGE_HEIGHT = height * 0.3;
 const IMAGE_HEIGHT_BIG = Math.min(height * 0.3, width * 0.9);
@@ -39,6 +41,11 @@ export default function Index() {
   const selectionStrategy = useAppSelector((state: AppState) =>
     selectSelectionStrategy(state),
   );
+
+  const copyToClipboard = async (value: string) => {
+    Vibration.vibrate(50);
+    await Clipboard.setStringAsync(value);
+  };
 
   const { imageHeight, dynamicMargin } = useMemo(() => ({
     imageHeight: new Animated.Value(IMAGE_HEIGHT_BIG),
@@ -209,7 +216,7 @@ export default function Index() {
         </DataTable.Header>
   
         {leaderBoardUsers.slice(from, to).map((item) => (
-          <DataTable.Row style={{ backgroundColor: item.selected ? '#d0e3ff': undefined}} key={item.user.rank}>
+          <DataTable.Row style={{ backgroundColor: item.selected ? '#d0e3ff': undefined}} key={item.user.rank} onLongPress={() => copyToClipboard(item.user.name)}>
             <DataTable.Cell style={{flex: 0.3}} >{item.user.rank}</DataTable.Cell>
             <DataTable.Cell >{item.user.name}</DataTable.Cell>
             <DataTable.Cell numeric>{item.user.bananas}</DataTable.Cell>
