@@ -15,7 +15,7 @@ import { SortStrategy } from "../redux/types";
 const {  width, height } = Dimensions.get("window");
 
 const IMAGE_HEIGHT = height * 0.3;
-const IMAGE_HEIGHT_BIG = Math.min(height * 0.5, width * 0.9);
+const IMAGE_HEIGHT_BIG = Math.min(height * 0.3, width * 0.9);
 
 const IMAGE_HEIGHT_SMALL = height * 0.2;
 
@@ -38,58 +38,10 @@ export default function Index() {
     selectSelectionStrategy(state),
   );
 
-  const { imageHeight } = useMemo(() => ({
-    imageHeight: new Animated.Value(IMAGE_HEIGHT_BIG)
+  const { imageHeight, dynamicMargin } = useMemo(() => ({
+    imageHeight: new Animated.Value(IMAGE_HEIGHT_BIG),
+    dynamicMargin: new Animated.Value( (height / 2 - IMAGE_HEIGHT_BIG) / 2 ),
   }), [])
-
-  
-
-  useEffect(() => {
-    const keyboardWillShowSub = Keyboard.addListener("keyboardDidShow", handleKeyboardWillShow);
-    const keyboardWillHideSub = Keyboard.addListener("keyboardDidHide", handleKeyboardWillHide);
-
-    return () => {
-      keyboardWillShowSub.remove();
-      keyboardWillHideSub.remove();
-    };
-  }, []);
-
-
-  const handleKeyboardWillShow = (event) => {
-    Animated.parallel([
-      Animated.timing(imageHeight, {
-         // @ts-ignore
-        duration: 300,
-         // @ts-ignorer
-        toValue: IMAGE_HEIGHT_SMALL,
-        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-      }),
-    ]).start();
-  };
-  
-  const handleKeyboardWillHide = (event) => {
-    Animated.parallel([
-      Animated.timing(imageHeight, {
-         // @ts-ignore
-        duration: 300,
-        toValue:  IMAGE_HEIGHT,
-        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-      }),
-    ]).start();
-  };
-
-  const handleFocusBar = () =>{
-    if(!barWasFocused){
-      setBarwasFocused(true);
-    }
-  }
-
-  
-  const handleUnFocusBar = () =>{
-    if(barWasFocused){
-      setBarwasFocused(false);
-    }
-  }
 
   const searchUser = (search: string) => {
     let newStrategy = selectionStrategy;
@@ -122,6 +74,40 @@ export default function Index() {
     );
     setSilenceAlert(true);
   }
+  if(leaderBoardUsers.length > 0){
+    Animated.parallel([
+      Animated.timing(imageHeight, {
+         // @ts-ignore
+        duration: 300,
+         // @ts-ignorer
+        toValue: IMAGE_HEIGHT_SMALL,
+        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+      }),
+      Animated.timing(dynamicMargin, {
+        // @ts-ignore
+       duration: 300,
+        // @ts-ignorer
+       toValue: 0,
+       useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+     }),
+    ]).start();
+  }else{
+    Animated.parallel([
+      Animated.timing(imageHeight, {
+         // @ts-ignore
+        duration: 300,
+        toValue:  IMAGE_HEIGHT,
+        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+      }),
+      Animated.timing(dynamicMargin, {
+        // @ts-ignore
+       duration: 300,
+        // @ts-ignorer
+       toValue: (height / 2 - IMAGE_HEIGHT_BIG) / 2,
+       useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+     }),
+    ]).start();
+  }
 
   const renderIt = (entry: LeaderBoardEntry) => (
     <Card
@@ -147,14 +133,14 @@ export default function Index() {
         mode="contained"
         onPress={() => select(SelectionStrategy.BOTTOM_TEN)}
       >
-        Show Bottom Ten
+        Top 10
       </Button>
     ) : (
       <Button
         mode="contained"
         onPress={() => select(SelectionStrategy.TOP_TEN)}
       >
-        Show Top Ten
+        Last 10
       </Button>
     );
 
@@ -171,25 +157,22 @@ export default function Index() {
 
   return (
   <Animated.View style={{flex: 1}}>
-  <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", padding: 10}} />
+  <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", marginBottom: dynamicMargin, marginTop: dynamicMargin}} />
  
-
       <View
-        style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
+        style={{ flexDirection: "row", alignItems: "center", padding: 10}}
       >
         <Searchbar
           style={{ flex: 1, marginRight: 10 }}
           placeholder="Search user"
           onChangeText={setSearchQuery}
           value={searchQuery}
-          onBlur={handleUnFocusBar}
-          onFocus={handleFocusBar}
         />
-        <View style={{display: barWasFocused? undefined: "none"}}>
+
         <Button  mode="contained" onPress={() => searchUser(searchQuery.trim())}>
           Search
         </Button>
-        </View>
+
        
       </View>
 
@@ -197,11 +180,11 @@ export default function Index() {
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
-          marginBottom: 10,
+          padding: 10
         }}
       >
-        {searched !== null && getSortButton()}
-        {searched !== null && selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
+        {searched !== null && leaderBoardUsers.length > 0 && getSortButton()}
+        {searched !== null && leaderBoardUsers.length > 0 && selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
       </View>
 
       <FlatList
