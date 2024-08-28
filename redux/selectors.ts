@@ -75,18 +75,17 @@ const selectLeaderBoardUsersFuzzy = (
 ): LeaderBoardEntry[] => {
   if (searchQuery.length === 0) {
     // If search query is empty, return the top 10 users
-    return top10.map((user) => ({ user, selected: true }));
+    return Object.keys(users).map((userName) => users[userName]).map((user) => ({ user, selected: false }));
   } else {
     const leaderBoardUsers = Object.keys(users)
       .filter((username) => username.includes(searchQuery))
-      .map((userName) => users[userName])
-      .slice(0, 10);
+      .map((userName) => users[userName]);
 
     if (leaderBoardUsers.length === 0) {
       return EMPTY_LIST;
     }
 
-    return leaderBoardUsers.map((user) => ({ user, selected: true }));
+    return leaderBoardUsers.map((user) => ({ user, selected: false }));
   }
 };
 

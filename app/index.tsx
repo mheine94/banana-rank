@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { FlatList, View, Image, Animated, Dimensions, Keyboard } from "react-native";
-import { Button, Card, List, Searchbar, Text } from "react-native-paper";
+import { useMemo, useState } from "react";
+import { View, Animated, Dimensions } from "react-native";
+import { Button, DataTable, Searchbar } from "react-native-paper";
 import { Alert } from "react-native";
 import {
   FUZZY_TOKEN,
@@ -8,7 +8,7 @@ import {
   selectSelectionStrategy,
   selectSortingStrategy,
 } from "@/redux/selectors";
-import { LeaderBoardEntry, AppState, SelectionStrategy } from "@/redux/types";
+import { AppState, SelectionStrategy } from "@/redux/types";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setSelection, setSorting } from "../redux/actions";
 import { SortStrategy } from "../redux/types";
@@ -17,14 +17,16 @@ const {  width, height } = Dimensions.get("window");
 const IMAGE_HEIGHT = height * 0.3;
 const IMAGE_HEIGHT_BIG = Math.min(height * 0.3, width * 0.9);
 
-const IMAGE_HEIGHT_SMALL = height * 0.2;
+const IMAGE_HEIGHT_SMALL = height * 0.13;
 
 
 export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searched, setSearched] = useState<string | null>(null);
-  const [barWasFocused, setBarwasFocused] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(0);
   const [silenceAlert, setSilenceAlert] = useState(false);
+
+  const itemsPerPage = 10;
 
   const dispatch = useAppDispatch();
 
@@ -57,6 +59,7 @@ export default function Index() {
 
     setSearched(search);
     setSilenceAlert(false);
+    setPage(0);
   };
 
   const sort = (strategy: SortStrategy) => {
@@ -109,24 +112,6 @@ export default function Index() {
     ]).start();
   }
 
-  const renderIt = (entry: LeaderBoardEntry) => (
-    <Card
-      style={{
-        marginVertical: 5,
-        marginHorizontal: 10,
-        backgroundColor: entry.selected ? '#d0e3ff' : '#fff', // Slightly more saturated blue for selected
-      }}
-    >
-      <Card.Content>
-        <List.Item
-          title={entry.user.name}
-          description={`Rank: ${entry.user.rank}, Bananas: ${entry.user.bananas}`}
-          titleStyle={{ fontWeight: 'bold', color: '#000' }} // Darker title color for better contrast
-          descriptionStyle={{ color: '#666' }} // Slightly darker description for contrast
-        />
-      </Card.Content>
-    </Card>
-  );
   const getRankButton = () =>
     selectionStrategy === SelectionStrategy.TOP_TEN ? (
       <Button
@@ -155,12 +140,29 @@ export default function Index() {
       </Button>
     );
 
+  const from = page * itemsPerPage;
+  const to = Math.min((page + 1) * itemsPerPage, leaderBoardUsers.length);
+
+  const fullPages = Math.floor(leaderBoardUsers.length / 10)
+  const partialPages = leaderBoardUsers.length % 10;
+
+  let numberOfItemsPerPageList: number[] = []
+
+  for(let i = 0; i < fullPages; i++){
+    numberOfItemsPerPageList.push(10);
+  }
+
+  if(partialPages > 0){
+    numberOfItemsPerPageList.push(partialPages);
+  }
+  
+
   return (
   <Animated.View style={{flex: 1}}>
   <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", marginBottom: dynamicMargin, marginTop: dynamicMargin}} />
  
       <View
-        style={{ flexDirection: "row", alignItems: "center", padding: 10}}
+        style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingBottom: 5}}
       >
         <Searchbar
           style={{ flex: 1, marginRight: 10 }}
@@ -180,19 +182,43 @@ export default function Index() {
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
-          padding: 10
+          paddingHorizontal: 10
         }}
       >
         {searched !== null && leaderBoardUsers.length > 0 && getSortButton()}
         {searched !== null && leaderBoardUsers.length > 0 && selectionStrategy !== SelectionStrategy.FUZZY && getRankButton()}
       </View>
+      {searched !== null && leaderBoardUsers.length > 0 && (
+        <DataTable>
+        <DataTable.Header>
+          <DataTable.Title style={{flex: 0.3}}>Rank</DataTable.Title>
+          <DataTable.Title>Name</DataTable.Title>
+          <DataTable.Title numeric>Bananas</DataTable.Title>
+        </DataTable.Header>
+  
+        {leaderBoardUsers.slice(from, to).map((item) => (
+          <DataTable.Row style={{ backgroundColor: item.selected ? '#d0e3ff': undefined}} key={item.user.rank}>
+            <DataTable.Cell style={{flex: 0.3}} >{item.user.rank}</DataTable.Cell>
+            <DataTable.Cell >{item.user.name}</DataTable.Cell>
+            <DataTable.Cell numeric>{item.user.bananas}</DataTable.Cell>
+          </DataTable.Row>
+        ))}
+  
+        {leaderBoardUsers.length > 10 && (  <DataTable.Pagination
+          page={page}
+          numberOfPages={Math.ceil(leaderBoardUsers.length / itemsPerPage)}
+          onPageChange={(page) => setPage(page)}
+          label={`${from + 1}-${to} of ${leaderBoardUsers.length}`}
+          numberOfItemsPerPageList={numberOfItemsPerPageList}
+          numberOfItemsPerPage={itemsPerPage}
+          showFastPaginationControls
+          selectPageDropdownLabel={'Rows per page'}
+        />)}
+      
+      </DataTable>
+      )}
 
-      <FlatList
-        data={leaderBoardUsers}
-        renderItem={({ item }) => renderIt(item)}
-        keyExtractor={(item) => item.user.name}
-        contentContainerStyle={{ paddingBottom: 10 }}
-      />
+    
     </Animated.View>
     
   );
