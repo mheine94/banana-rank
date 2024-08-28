@@ -46,6 +46,8 @@ export default function Index() {
   }), [])
 
   const searchUser = (search: string) => {
+    if(searched !== search){
+
     let newStrategy = selectionStrategy;
     if (search !== undefined && search.startsWith(FUZZY_TOKEN)) {
       newStrategy = SelectionStrategy.FUZZY;
@@ -57,10 +59,18 @@ export default function Index() {
       dispatch(setSelection(newStrategy));
     }
 
+    
     setSearched(search);
     setSilenceAlert(false);
-    setPage(0);
+
+
+      setPage(0);
+    }
   };
+
+  const clearSearch = () => {
+    setSearched(null);
+  }
 
   const sort = (strategy: SortStrategy) => {
     dispatch(setSorting(strategy));
@@ -168,6 +178,7 @@ export default function Index() {
           style={{ flex: 1, marginRight: 10 }}
           placeholder="Search user"
           onChangeText={setSearchQuery}
+          onClearIconPress={clearSearch}
           value={searchQuery}
         />
 
