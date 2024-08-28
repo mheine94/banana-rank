@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FlatList, View, Image, Animated, Dimensions, Keyboard } from "react-native";
 import { Button, Card, List, Searchbar, Text } from "react-native-paper";
 import { Alert } from "react-native";
@@ -12,7 +12,7 @@ import { LeaderBoardEntry, AppState, SelectionStrategy } from "@/redux/types";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setSelection, setSorting } from "../redux/actions";
 import { SortStrategy } from "../redux/types";
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 const IMAGE_HEIGHT = height * 0.3;
 const IMAGE_HEIGHT_SMALL = height * 0.2;
@@ -35,9 +35,12 @@ export default function Index() {
     selectSelectionStrategy(state),
   );
 
+  const { keyboardHeight, imageHeight } = useMemo(() => ({
+    keyboardHeight:  new Animated.Value(0),
+    imageHeight: new Animated.Value(IMAGE_HEIGHT)
+  }), [])
 
-  const keyboardHeight = new Animated.Value(0);
-  const imageHeight = new Animated.Value(IMAGE_HEIGHT);
+  
 
   useEffect(() => {
     const keyboardWillShowSub = Keyboard.addListener("keyboardDidShow", handleKeyboardWillShow);
@@ -51,6 +54,9 @@ export default function Index() {
 
 
   const handleKeyboardWillShow = (event) => {
+    Alert.alert(
+      "Show key"
+    );
     Animated.parallel([
       Animated.timing(keyboardHeight, {
         // @ts-ignore
@@ -72,6 +78,9 @@ export default function Index() {
   };
   
   const handleKeyboardWillHide = (event) => {
+    Alert.alert(
+      "Hide key"
+    );
     Animated.parallel([
       Animated.timing(keyboardHeight, {
          // @ts-ignore
@@ -207,5 +216,6 @@ export default function Index() {
         contentContainerStyle={{ paddingBottom: 20 }}
       />
     </Animated.View>
+    
   );
 }
