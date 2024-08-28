@@ -1,6 +1,6 @@
 import { AppState, UserActionTypes, User, UserJson, SortStrategy, SelectionStrategy, UserMap, LeaderBoardData} from "./types";
 import leaderBoard from "./leaderboard.json"
-import { compareAlphabetically } from "./util";
+import { compareByBananasAndName } from "./util";
 
 
 const loadUsers = () : User[] => {
@@ -9,11 +9,10 @@ const loadUsers = () : User[] => {
     let usersJsonObjs : UserJson[] = userIds.map(userId => leaderBoardData[userId]);
 
     usersJsonObjs.forEach(user => user.name = user.name.trim())
-    usersJsonObjs.sort(byComparingBananasAndName)
+    usersJsonObjs.sort(compareByBananasAndName)
 
     // I assume users list is correct and does not need to be filtered
     // The user with the empty name will be included
-
     return usersJsonObjs.map((userJson, index) => ({name: userJson.name, bananas: userJson.bananas, rank: index + 1}))
 }
 
@@ -46,20 +45,6 @@ const loadInitialState = () : AppState => {
     selection: SelectionStrategy.TOP_TEN
   }
   return initialState;
-}
-
-const byComparingBananasAndName = (a: UserJson, b: UserJson) => {
-  const A_GREATER_B = 1;
-  const B_GREATER_A = -1;
-
-  if(a.bananas < b.bananas){
-    return A_GREATER_B;
-  }
-  if(b.bananas < a.bananas){
-    return B_GREATER_A;
-  }
-
-  return compareAlphabetically(a.name, b.name);
 }
 
 const initialState: AppState = loadInitialState();

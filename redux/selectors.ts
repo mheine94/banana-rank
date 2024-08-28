@@ -1,5 +1,5 @@
 import { LeaderBoardEntry, AppState, SelectionStrategy, User, SortStrategy } from './types';
-import { compareAlphabetically } from './util';
+import { compareAlphabetically, compareByUserName } from './util';
 
 // return the same instance of empty list in case that there are no results
 // that prevents unnecessary rerendering
@@ -37,7 +37,7 @@ const selectLeaderBoardUsersFuzzy = (state: AppState, searchQuery: string) : Lea
   let leaderBoardEntries = leaderBoardUsers.map((user) => ({user, selected: true}));
 
   if(sorting === SortStrategy.BY_NAME){
-    leaderBoardEntries.sort(byUserName)
+    leaderBoardEntries.sort(compareByUserName)
   }
 
   if(leaderBoardEntries.length === 0){
@@ -73,14 +73,10 @@ const selectLeaderBoardUsersTopOrBottom = (state: AppState, searchQuery: string 
     }
 
     if(sorting === SortStrategy.BY_NAME){
-      leaderBoardUsers.sort(byUserName)
+      leaderBoardUsers.sort(compareByUserName)
     }
 
     return leaderBoardUsers;
-}
-
-const byUserName = (entryA: LeaderBoardEntry, entryB: LeaderBoardEntry) => {
-  return compareAlphabetically(entryA.user.name, entryB.user.name);
 }
 
 const addSearchedUserToLeaderboard = (user: LeaderBoardEntry, selection: SelectionStrategy, leaderBoard: LeaderBoardEntry[]) => {
