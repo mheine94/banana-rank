@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import {
   LeaderBoardEntry,
   AppState,
@@ -74,7 +75,7 @@ const selectLeaderBoardUsersFuzzy = (
 
 const selectLeaderBoardUsersTopOrBottom = (
   selection: SelectionStrategy,
-  searchQuery: string | undefined,
+  searchQuery: string,
   users: Record<string, User>,
   top10: User[],
   bottom10: User[],
@@ -86,10 +87,6 @@ const selectLeaderBoardUsersTopOrBottom = (
     user,
     selected: user.name === searchQuery,
   }));
-
-  if (!searchQuery) {
-    return leaderBoardUsers;
-  }
 
   const searchedUserIsInTopTen = leaderBoardUsers.some(
     (entry) => entry.selected,
