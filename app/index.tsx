@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { View, Animated, Dimensions } from "react-native";
+import { View, Animated, Dimensions, Keyboard } from "react-native";
 import { Button, DataTable, Searchbar } from "react-native-paper";
 import { Alert } from "react-native";
 import {
@@ -46,6 +46,7 @@ export default function Index() {
   }), [])
 
   const searchUser = (search: string) => {
+    Keyboard.dismiss()
     if(searched !== search){
 
     let newStrategy = selectionStrategy;
