@@ -2,7 +2,6 @@ import {
   SelectionStrategy,
   SortStrategy,
   LeaderBoardData,
-  UserJson,
   User,
   AppState,
 } from "@/redux/types";
