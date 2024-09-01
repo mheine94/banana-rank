@@ -4,8 +4,6 @@ import { Animated, Dimensions, StyleSheet } from "react-native";
 
 const {  width, height } = Dimensions.get("window");
 
-
-const IMAGE_HEIGHT = height * 0.3;
 const IMAGE_HEIGHT_BIG = Math.min(height * 0.3, width * 0.9);
 const IMAGE_HEIGHT_SMALL = height * 0.13;
 
@@ -14,13 +12,12 @@ export enum ImageSize {
     SMALL
 }
 
-interface Props {
+interface GrowingImageContainerProps {
     scaleTo : ImageSize,
     children?: React.ReactNode
 }
 
-
-export default function GrowingImageContainer({ scaleTo , children } : Props) {
+export default function GrowingImageContainer({ scaleTo , children } : GrowingImageContainerProps) {
 
     const image = require("../assets/images/rank.png");
     
@@ -37,14 +34,14 @@ export default function GrowingImageContainer({ scaleTo , children } : Props) {
             duration: 300,
              // @ts-ignore
             toValue: IMAGE_HEIGHT_SMALL,
-            useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+            useNativeDriver: false,
           }),
           Animated.timing(dynamicMargin, {
             // @ts-ignore
            duration: 300,
             // @ts-ignore
            toValue: 0,
-           useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+           useNativeDriver: false,
          }),
         ]).start();
       }else{
@@ -52,22 +49,22 @@ export default function GrowingImageContainer({ scaleTo , children } : Props) {
           Animated.timing(imageHeight, {
              // @ts-ignore
             duration: 300,
-            toValue:  IMAGE_HEIGHT,
-            useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+            toValue:  IMAGE_HEIGHT_BIG,
+            useNativeDriver: false,
           }),
           Animated.timing(dynamicMargin, {
             // @ts-ignore
            duration: 300,
             // @ts-ignorer
            toValue: (height / 2 - IMAGE_HEIGHT_BIG) / 2,
-           useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
+           useNativeDriver: false,
          }),
         ]).start();
       }
 
 return (
- <Animated.View style={{flex: 1}}>
-  <Animated.Image source={image} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", marginBottom: dynamicMargin, marginTop: dynamicMargin}} />
+ <Animated.View style={styles.container}>
+  <Animated.Image source={image} style={{ ...styles.image , height: imageHeight , marginBottom: dynamicMargin, marginTop: dynamicMargin}} />
     {children}
    </Animated.View>
 );
@@ -75,9 +72,11 @@ return (
 }
 
 const styles = StyleSheet.create({
-    text: {
-      fontSize: 28,
-      lineHeight: 32,
-      marginTop: -6,
+    container: {
+        flex: 1
     },
-  });
+    image: { 
+        alignSelf: "center",
+        aspectRatio : "1/1"}
+    }
+);
