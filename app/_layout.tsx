@@ -19,7 +19,7 @@ export default function RootLayout() {
     <PaperProvider theme={theme}>
       <Provider store={store}>
         <Stack>
-          <Stack.Screen options={{ headerShown: false }} name="index" />
+          <Stack.Screen options={{ headerShown: false, statusBarStyle: "dark" }} name="index" />
         </Stack>
       </Provider>
     </PaperProvider>
