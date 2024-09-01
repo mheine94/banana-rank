@@ -1,13 +1,11 @@
-import { Alert } from "react-native";
 import {
   LeaderBoardEntry,
   AppState,
   SelectionStrategy,
   User,
   SortStrategy,
-  UserMap,
 } from "./types";
-import { compareAlphabetically, compareByUserName } from "./util";
+import { compareByUserName } from "./util";
 import { createSelector } from "reselect";
 
 const EMPTY_LIST: LeaderBoardEntry[] = [];
