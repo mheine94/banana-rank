@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Welcome banana rank 🍌
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
@@ -16,35 +16,42 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## App functionality
+This app is a ranking leaderboard. The User with the most bananas wins.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Search
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+You can search the banana ranking by typing a user name an hit search.
 
-## Get a fresh project
+The App will display a leaderboard and highlight the searched user.
+If the user is outside of the top or bottom 10 then he will be displayed at the bottom or top of the list.
 
-When you're ready, run:
+In case you dont know any username you can search without typing anything in the search box.
 
-```bash
-npm run reset-project
-```
+You can cancel your search by touching the "x" in the search box.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Options
+There are two options that you can change Sorting and Top 10 or Bottom 10
 
-## Learn more
+##### Sorting 
+By default the leaderboard gets sorted by rank, but there is another option.
+Touch the "Sort by Name" button to sort the current results by their name.
 
-To learn more about developing your project with Expo, look at the following resources:
+##### Selection
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+By default the leaderboard shows the top 10 users, but you can switch to show the bottom 10 users by touching the 
+"Top 10" Button.
 
-## Join the community
+### Bonus (Fuzzy Search)
 
-Join our community of developers creating universal apps.
+You can fuzzy search for user names that contain a substring by prefixing your query with "~".
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+For example search for "~Chris" to find all users with names that contain "Chris".
+
+If searching only "~" all users will be displayed. 
+
+In that case there will be a pagination displayed on the bottom of the leader board.
+
+### Copy name to clipboard
+
+You can copy the name of a user to your clipboard by long-pressing the table row of the user.
