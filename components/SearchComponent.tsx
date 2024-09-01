@@ -3,7 +3,7 @@ import { Alert, Keyboard, View, StyleSheet } from "react-native";
 import { Button, Searchbar } from "react-native-paper";
 import { FUZZY_TOKEN, selectSelectionStrategy } from "@/redux/selectors";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { LeaderBoardEntry, SelectionStrategy } from "@/redux/types";
+import { AppState, LeaderBoardEntry, SelectionStrategy } from "@/redux/types";
 import { setSelection } from "@/redux/actions";
 
 interface SearchComponentProps {
