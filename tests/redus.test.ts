@@ -61,6 +61,16 @@ describe('load initial state', () => {
     let state = loadInitialState(data);
 
     // then
+
+    it(`should default to sort strategy ${SortStrategy[SortStrategy.BY_RANK]}`, () =>{
+        expect(selectSelectionStrategy(state)).toEqual(SortStrategy.BY_RANK)
+    })
+
+    it(`should default to selection strategy ${SelectionStrategy[SelectionStrategy.TOP_TEN]}`, () =>{
+        expect(selectSelectionStrategy(state)).toEqual(SelectionStrategy.TOP_TEN)
+    })
+
+
     it(`should precompute top ten`, () =>{
         let expected : User[] = [
             createUser("rank_1", 1, 10),
