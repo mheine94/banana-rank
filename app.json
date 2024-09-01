@@ -4,11 +4,11 @@
     "slug": "banana-rank",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/test.png",
+    "icon": "./assets/images/bananaKing.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/test.png",
+      "image": "./assets/images/bananaKing.png",
       "resizeMode": "contain",
       "backgroundColor": "#181937"
     },
@@ -17,14 +17,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/test.png",
+        "foregroundImage": "./assets/images/bananaKing.png",
         "backgroundColor": "#181937"
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/test.png"
+      "favicon": "./assets/images/bananaKing.png"
     },
     "plugins": [
       "expo-router"
