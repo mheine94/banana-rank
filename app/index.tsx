@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { View, Animated, Dimensions, Keyboard, Vibration } from "react-native";
+import { useState } from "react";
+import { View, Keyboard, Vibration } from "react-native";
 import { Button, DataTable, Searchbar } from "react-native-paper";
 import { Alert } from "react-native";
 import {
@@ -12,14 +12,9 @@ import { AppState, SelectionStrategy } from "@/redux/types";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setSelection, setSorting } from "../redux/actions";
 import { SortStrategy } from "../redux/types";
-const {  width, height } = Dimensions.get("window");
 
 import * as Clipboard from 'expo-clipboard'
-
-const IMAGE_HEIGHT = height * 0.3;
-const IMAGE_HEIGHT_BIG = Math.min(height * 0.3, width * 0.9);
-
-const IMAGE_HEIGHT_SMALL = height * 0.13;
+import GrowingImageContainer, { ImageSize } from "@/components/GrowingImageContainer";
 
 
 export default function Index() {
@@ -46,11 +41,6 @@ export default function Index() {
     Vibration.vibrate(50);
     await Clipboard.setStringAsync(value);
   };
-
-  const { imageHeight, dynamicMargin } = useMemo(() => ({
-    imageHeight: new Animated.Value(IMAGE_HEIGHT_BIG),
-    dynamicMargin: new Animated.Value( (height / 2 - IMAGE_HEIGHT_BIG) / 2 ),
-  }), [])
 
   const searchUser = (search: string) => {
     Keyboard.dismiss()
@@ -94,40 +84,6 @@ export default function Index() {
       "This user name does not exist! Please specify an existing user name!",
     );
     setSilenceAlert(true);
-  }
-  if(leaderBoardUsers.length > 0){
-    Animated.parallel([
-      Animated.timing(imageHeight, {
-         // @ts-ignore
-        duration: 300,
-         // @ts-ignorer
-        toValue: IMAGE_HEIGHT_SMALL,
-        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-      }),
-      Animated.timing(dynamicMargin, {
-        // @ts-ignore
-       duration: 300,
-        // @ts-ignorer
-       toValue: 0,
-       useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-     }),
-    ]).start();
-  }else{
-    Animated.parallel([
-      Animated.timing(imageHeight, {
-         // @ts-ignore
-        duration: 300,
-        toValue:  IMAGE_HEIGHT,
-        useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-      }),
-      Animated.timing(dynamicMargin, {
-        // @ts-ignore
-       duration: 300,
-        // @ts-ignorer
-       toValue: (height / 2 - IMAGE_HEIGHT_BIG) / 2,
-       useNativeDriver: false, // Set useNativeDriver to false or true based on your preference
-     }),
-    ]).start();
   }
 
   const getRankButton = () =>
@@ -173,12 +129,10 @@ export default function Index() {
   if(partialPages > 0){
     numberOfItemsPerPageList.push(partialPages);
   }
-  
+  const scaleImageTo = leaderBoardUsers.length > 0 ? ImageSize.SMALL : ImageSize.BIG;
 
   return (
-  <Animated.View style={{flex: 1}}>
-  <Animated.Image source={require("../assets/images/rank.png")} style={{ height: imageHeight , alignSelf: "center", aspectRatio : "1/1", marginBottom: dynamicMargin, marginTop: dynamicMargin}} />
- 
+    <GrowingImageContainer  scaleTo={scaleImageTo}>
       <View
         style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingBottom: 5}}
       >
@@ -238,7 +192,6 @@ export default function Index() {
       )}
 
     
-    </Animated.View>
-    
+    </GrowingImageContainer>
   );
 }
