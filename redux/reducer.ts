@@ -36,7 +36,7 @@ export const loadInitialState = (leaderBoardData : LeaderBoardData = leaderBoard
   const usersMap: UserMap = {};
   users.reduce((map, nextUser) => {
     // users with duplicate names are not covered by requirement
-    // the example sais display one found user
+    // the example says display one found user
     // so we choose the one with higher score
     if (map[nextUser.name] == undefined) {
       map[nextUser.name] = nextUser;
