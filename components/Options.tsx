@@ -1,4 +1,4 @@
-import { LeaderBoardEntry, SelectionStrategy, SortStrategy } from "@/redux/types";
+import { AppState, LeaderBoardEntry, SelectionStrategy, SortStrategy } from "@/redux/types";
 import React  from "react";
 import { StyleSheet, View } from "react-native";
 import { Button } from "react-native-paper";
