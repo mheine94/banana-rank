@@ -125,8 +125,6 @@ describe('select leaderboard (exact match)', () => {
         let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}))
         expectedLeaderBoard[0].selected = true;
 
-        expectedLeaderBoard.sort((a, b) => a.user)
-
         // when
         const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
 
@@ -135,17 +133,31 @@ describe('select leaderboard (exact match)', () => {
         expect(leaderBoard).toEqual(expectedLeaderBoard);
     });
 
-    it(`should return top 10 sorted by name when sort strategy is ${SortStrategy[SortStrategy.BY_NAME]}`, () =>{
+    it(`should sort by name when sort strategy is ${SortStrategy[SortStrategy.BY_NAME]}`, () =>{
         // given
-        let searchQuery = "rank_2";
-        let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}))
-        expectedLeaderBoard[1].selected = true;
+        let searchQuery = "Charles";
+
+        let testData : LeaderBoardData  = {
+            "1" : createUserJsonData("Charles", 10),
+            "2" : createUserJsonData("Bart", 9),
+            "3" : createUserJsonData("Alfred", 8)
+        }
+        state = loadInitialState(testData);
+        state.sorting = SortStrategy.BY_NAME;
+
+        let testUsers : User[] = [
+            createUser("Alfred", 3, 8),
+            createUser("Bart", 2, 9),
+            createUser("Charles", 1, 10)
+        ]
+        
+        let expectedLeaderBoard = testUsers.map(user => ({user, selected: false}))
+        expectedLeaderBoard[2].selected = true;
 
         // when
         const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
 
         // then
-        expect(leaderBoard).toHaveLength(10);
         expect(leaderBoard).toEqual(expectedLeaderBoard);
     });
 
@@ -253,6 +265,34 @@ describe('select leaderboard (fuzzy search)', () => {
 
         // then
         expect(leaderBoard).toHaveLength(0);
+    });
+
+    it(`should sort by name when sort strategy is ${SortStrategy[SortStrategy.BY_NAME]}`, () =>{
+        // given
+        let searchQuery = "~";
+
+        let testData : LeaderBoardData  = {
+            "1" : createUserJsonData("Charles", 10),
+            "2" : createUserJsonData("Bart", 9),
+            "3" : createUserJsonData("Alfred", 8)
+        }
+        state = loadInitialState(testData);
+        state.sorting = SortStrategy.BY_NAME;
+        state.selection = SelectionStrategy.FUZZY;
+
+        let testUsers : User[] = [
+            createUser("Alfred", 3, 8),
+            createUser("Bart", 2, 9),
+            createUser("Charles", 1, 10)
+        ]
+        
+        let expectedLeaderBoard = testUsers.map(user => ({user, selected: false}))
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
     });
 
 });
