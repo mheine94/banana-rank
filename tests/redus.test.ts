@@ -113,7 +113,7 @@ describe('load initial state', () => {
    
 })
 
-describe('select leaderboard', () => {
+describe('select leaderboard (exact match)', () => {
 
     let state : AppState;
 
@@ -156,11 +156,10 @@ describe('select leaderboard', () => {
     it(`should return top 10 with 10th user being searched user when user is not in top ten`, () =>{
         // given
         let searchQuery = "rank_11";
-        let rank11User = BOTTOM_TEN[9];
-        let rank11UserEntry = {user: rank11User, selected: true};
-
+        
+        let rank11User = {user: BOTTOM_TEN[9], selected: true};
         let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}));
-        expectedLeaderBoard[9] = rank11UserEntry;
+        expectedLeaderBoard[9] = rank11User;
 
         state.selection = SelectionStrategy.TOP_TEN;
 
@@ -175,6 +174,7 @@ describe('select leaderboard', () => {
     it(`should return bottom 10 with selected user when searched is in bottom ten`, () =>{
         // given
         let searchQuery = "rank_2";
+
         let expectedLeaderBoard = BOTTOM_TEN.map(user => ({user, selected: false}))
         expectedLeaderBoard[0].selected = true;
 
@@ -192,10 +192,10 @@ describe('select leaderboard', () => {
     it(`should return bottom 10 with 1st user being searched user when user is not in bottom ten`, () =>{
         // given
         let searchQuery = "rank_1";
-        let rank1User = TOP_TEN[0];
-        let rank1UserEntry = {user: rank1User, selected: true};
+
+        let rank1User = {user: TOP_TEN[0], selected: true};
         let expectedLeaderBoard = BOTTOM_TEN.map(user => ({user, selected: false}));
-        expectedLeaderBoard[0] = rank1UserEntry;
+        expectedLeaderBoard[0] = rank1User;
 
         state.selection = SelectionStrategy.BOTTOM_TEN;
 
@@ -206,7 +206,60 @@ describe('select leaderboard', () => {
         expect(leaderBoard).toHaveLength(10);
         expect(leaderBoard).toEqual(expectedLeaderBoard);
     });
-  
    
 })
+
+describe('select leaderboard (fuzzy search)', () => {
+
+    let state : AppState;
+
+    beforeEach(()=>{
+        const data = TEST_DATA;
+        state = loadInitialState(data);
+        state.selection = SelectionStrategy.FUZZY;
+    })
+
+    it(`should return all users when fuzzy search with empty filter`, () =>{
+        // given
+        let searchQuery = "~";
+    
+        let rank11User = {user:  BOTTOM_TEN[9], selected: false};
+        let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}));
+        expectedLeaderBoard.push(rank11User);
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+    it(`should return only users with names matching filter when fuzzy search with non-empty filter`, () =>{
+        // given
+        let searchQuery = "~1";
+    
+        let rank1User = {user: TOP_TEN[0], selected: false};
+        let rank10User = {user: TOP_TEN[9], selected: false};
+        let rank11User = {user: BOTTOM_TEN[9], selected: false};
+        let expectedLeaderBoard = [rank1User, rank10User ,rank11User]
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+    it(`should return empty array when no user bane matches fuzzy search with non-empty filter`, () =>{
+        // given
+        let searchQuery = "~does_not_exist";
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(0);
+    });
+
+});
 
