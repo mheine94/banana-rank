@@ -10,8 +10,6 @@ import {
 import { compareAlphabetically, compareByUserName } from "./util";
 import { createSelector } from "reselect";
 
-// return the same instance of empty list in case that there are no results
-// that prevents unnecessary rerendering
 const EMPTY_LIST: LeaderBoardEntry[] = [];
 
 export const FUZZY_TOKEN: string = "~";
