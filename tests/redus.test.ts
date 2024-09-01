@@ -1,8 +1,8 @@
 
-import { SelectionStrategy, SortStrategy, LeaderBoardData, UserJson, User } from "@/redux/types";
+import { SelectionStrategy, SortStrategy, LeaderBoardData, UserJson, User, AppState } from "@/redux/types";
 import {userReducer, loadInitialState} from "../redux/reducer"
 import { setSorting, setSelection } from "@/redux/actions";
-import { selectSelectionStrategy, selectSortingStrategy } from "@/redux/selectors";
+import { memoizedLeaderBoardUsers, selectSelectionStrategy, selectSortingStrategy } from "@/redux/selectors";
 import { createUser, createUserData as createUserJsonData } from "./test.helpers";
 
 
@@ -22,6 +22,34 @@ let TEST_DATA : LeaderBoardData  = {
     "10" : createUserJsonData("rank_10", 1),
     "11" : createUserJsonData("rank_11", 0),
 }
+
+let TOP_TEN = [
+    createUser("rank_1", 1, 10),
+    createUser("rank_2", 2, 9),
+    createUser("rank_3", 3, 8),
+    createUser("rank_4", 4, 7),
+    createUser("rank_5", 5, 6),
+    createUser("rank_6", 6, 5),
+    createUser("rank_7", 7, 4),
+    createUser("rank_8", 8, 3),
+    createUser("rank_9", 9, 2),
+    createUser("rank_10", 10, 1),
+]
+
+let BOTTOM_TEN = [
+    createUser("rank_2", 2, 9),
+    createUser("rank_3", 3, 8),
+    createUser("rank_4", 4, 7),
+    createUser("rank_5", 5, 6),
+    createUser("rank_6", 6, 5),
+    createUser("rank_7", 7, 4),
+    createUser("rank_8", 8, 3),
+    createUser("rank_9", 9, 2),
+    createUser("rank_10", 10, 1),
+    createUser("rank_11", 11, 0),
+]
+
+
 
 describe('sort strategy reducer set action', () => {
     SORT_STRATEGIES
@@ -72,38 +100,113 @@ describe('load initial state', () => {
 
 
     it(`should precompute top ten`, () =>{
-        let expected : User[] = [
-            createUser("rank_1", 1, 10),
-            createUser("rank_2", 2, 9),
-            createUser("rank_3", 3, 8),
-            createUser("rank_4", 4, 7),
-            createUser("rank_5", 5, 6),
-            createUser("rank_6", 6, 5),
-            createUser("rank_7", 7, 4),
-            createUser("rank_8", 8, 3),
-            createUser("rank_9", 9, 2),
-            createUser("rank_10", 10, 1),
-        ]
+        let expected : User[] = TOP_TEN;
 
         expect(state.top10).toEqual(expected)
     })
 
     it(`should precompute bottom ten`, () =>{
-        let expected : User[] = [
-            createUser("rank_2", 2, 9),
-            createUser("rank_3", 3, 8),
-            createUser("rank_4", 4, 7),
-            createUser("rank_5", 5, 6),
-            createUser("rank_6", 6, 5),
-            createUser("rank_7", 7, 4),
-            createUser("rank_8", 8, 3),
-            createUser("rank_9", 9, 2),
-            createUser("rank_10", 10, 1),
-            createUser("rank_11", 11, 0),
-        ]
+        let expected : User[] = BOTTOM_TEN;
     
         expect(state.bottom10).toEqual(expected)
     })
+   
+})
+
+describe('select leaderboard', () => {
+
+    let state : AppState;
+
+    beforeEach(()=>{
+        const data = TEST_DATA;
+        state = loadInitialState(data);
+    })
+
+
+    it(`should return empty array without search`, () =>{
+        let searchQuery = null;
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        expect(leaderBoard).toHaveLength(0);
+    });
+
+    it(`should return empty array when searched user does not exist`, () =>{
+        let searchQuery = "does_not_exist";
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        expect(leaderBoard).toHaveLength(0);
+    });
+
+    it(`should return top 10 with selected user when searched is in top ten`, () =>{
+        // given
+        let searchQuery = "rank_2";
+        let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}))
+        expectedLeaderBoard[1].selected = true;
+        
+        state.selection = SelectionStrategy.TOP_TEN;
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(10);
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+    it(`should return top 10 with 10th user being searched user when user is not in top ten`, () =>{
+        // given
+        let searchQuery = "rank_11";
+        let rank11User = BOTTOM_TEN[9];
+        let rank11UserEntry = {user: rank11User, selected: true};
+
+        let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}));
+        expectedLeaderBoard[9] = rank11UserEntry;
+
+        state.selection = SelectionStrategy.TOP_TEN;
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(10);
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+    it(`should return bottom 10 with selected user when searched is in bottom ten`, () =>{
+        // given
+        let searchQuery = "rank_2";
+        let expectedLeaderBoard = BOTTOM_TEN.map(user => ({user, selected: false}))
+        expectedLeaderBoard[0].selected = true;
+
+        state.selection = SelectionStrategy.BOTTOM_TEN;
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(10);
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+   
+    it(`should return bottom 10 with 1st user being searched user when user is not in bottom ten`, () =>{
+        // given
+        let searchQuery = "rank_1";
+        let rank1User = TOP_TEN[0];
+        let rank1UserEntry = {user: rank1User, selected: true};
+        let expectedLeaderBoard = BOTTOM_TEN.map(user => ({user, selected: false}));
+        expectedLeaderBoard[0] = rank1UserEntry;
+
+        state.selection = SelectionStrategy.BOTTOM_TEN;
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(10);
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+  
    
 })
 
