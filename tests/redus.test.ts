@@ -78,9 +78,6 @@ describe('selection strategy reducer set action', () => {
     })
 })
 
-
-// could leave this test as it feels too coupled to implementation 
-// and instead test only the leader board select
 describe('load initial state', () => {
     // given 
     const data = TEST_DATA;
@@ -89,7 +86,6 @@ describe('load initial state', () => {
     let state = loadInitialState(data);
 
     // then
-
     it(`should default to sort strategy ${SortStrategy[SortStrategy.BY_RANK]}`, () =>{
         expect(selectSelectionStrategy(state)).toEqual(SortStrategy.BY_RANK)
     })
@@ -97,20 +93,6 @@ describe('load initial state', () => {
     it(`should default to selection strategy ${SelectionStrategy[SelectionStrategy.TOP_TEN]}`, () =>{
         expect(selectSelectionStrategy(state)).toEqual(SelectionStrategy.TOP_TEN)
     })
-
-
-    it(`should precompute top ten`, () =>{
-        let expected : User[] = TOP_TEN;
-
-        expect(state.top10).toEqual(expected)
-    })
-
-    it(`should precompute bottom ten`, () =>{
-        let expected : User[] = BOTTOM_TEN;
-    
-        expect(state.bottom10).toEqual(expected)
-    })
-   
 })
 
 describe('select leaderboard (exact match)', () => {
@@ -139,11 +121,25 @@ describe('select leaderboard (exact match)', () => {
 
     it(`should return top 10 with selected user when searched is in top ten`, () =>{
         // given
+        let searchQuery = "rank_1";
+        let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}))
+        expectedLeaderBoard[0].selected = true;
+
+        expectedLeaderBoard.sort((a, b) => a.user)
+
+        // when
+        const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
+
+        // then
+        expect(leaderBoard).toHaveLength(10);
+        expect(leaderBoard).toEqual(expectedLeaderBoard);
+    });
+
+    it(`should return top 10 sorted by name when sort strategy is ${SortStrategy[SortStrategy.BY_NAME]}`, () =>{
+        // given
         let searchQuery = "rank_2";
         let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}))
         expectedLeaderBoard[1].selected = true;
-        
-        state.selection = SelectionStrategy.TOP_TEN;
 
         // when
         const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
@@ -160,8 +156,6 @@ describe('select leaderboard (exact match)', () => {
         let rank11User = {user: BOTTOM_TEN[9], selected: true};
         let expectedLeaderBoard = TOP_TEN.map(user => ({user, selected: false}));
         expectedLeaderBoard[9] = rank11User;
-
-        state.selection = SelectionStrategy.TOP_TEN;
 
         // when
         const leaderBoard = memoizedLeaderBoardUsers(state)(searchQuery)
