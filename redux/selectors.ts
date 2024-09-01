@@ -71,7 +71,9 @@ const selectLeaderBoardUsersFuzzy = (
 ): LeaderBoardEntry[] => {
   if (searchQuery.length === 0) {
     // If search query is empty, return the top 10 users
-    return Object.keys(users).map((userName) => users[userName]).map((user) => ({ user, selected: false }));
+    return Object.keys(users)
+      .map((userName) => users[userName])
+      .map((user) => ({ user, selected: false }));
   } else {
     const leaderBoardUsers = Object.keys(users)
       .filter((username) => username.includes(searchQuery))

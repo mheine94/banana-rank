@@ -11,7 +11,7 @@ import {
 import leaderBoard from "./leaderboard.json";
 import { compareByBananasAndName } from "./util";
 
-const loadUsers = (leaderBoardData : LeaderBoardData): User[] => {
+const loadUsers = (leaderBoardData: LeaderBoardData): User[] => {
   const userIds = Object.keys(leaderBoardData);
   let usersJsonObjs: UserJson[] = userIds.map(
     (userId) => leaderBoardData[userId],
@@ -29,7 +29,9 @@ const loadUsers = (leaderBoardData : LeaderBoardData): User[] => {
   }));
 };
 
-export const loadInitialState = (leaderBoardData : LeaderBoardData = leaderBoard): AppState => {
+export const loadInitialState = (
+  leaderBoardData: LeaderBoardData = leaderBoard,
+): AppState => {
   const users = loadUsers(leaderBoardData);
 
   // build users map for O(1) search speed for users outsite of top 10 or bottom 10
